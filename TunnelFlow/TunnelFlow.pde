@@ -10,17 +10,15 @@
 
 int cellSize= 8;                 
 float count = 0;
-float distanceToMouseSave = 0;
 float hue= 0;
 float rotation = 0;
-float saturation = 0;
 float scale = 0;
-float value = 0;
 boolean paint = false;
-float zDistance = -.5;
+float zDistance = -0;
+int modeCount = 5;
 
 void setup() {
-  size(1300, 800, P3D);   
+  size(1600, 900, P3D);   
   colorMode(HSB, 100);
   noCursor();
 }
@@ -32,38 +30,44 @@ void draw() {
   for (int x = 0; x < width; x+=cellSize) {
     for (int y = 0; y < height; y+=cellSize) {
       float distanceToMouse= dist(x, y, mouseX, mouseY);   
-      distanceToMouseSave = distanceToMouse;
       pushMatrix();                                         
-      translate(x, y, distanceToMouse*zDistance);           
+      translate(x, y, distanceToMouse*zDistance*1.2);           
       distanceToMouse+= count;  
-      distanceToMouse /= 80; 
-      hue = map(sin(distanceToMouse), -1, 1, 0, 100); 
-      rotation = map(tan(distanceToMouse*2), -1, 1, 0, TWO_PI);
-      saturation = mouseX/13;
-      value = mouseY/8+55;    
+      hue = map(sin(distanceToMouse/80), -1, 1, 0, 100); 
+      rotation = map(tan(distanceToMouse/40), -1, 1, 0, TWO_PI); 
       rotateX(rotation);
-      fill(hue, saturation, value);
-      scale = map(sin(distanceToMouse*32), -1, 1, -2, 2);
+      fill(hue, mouseX/16, mouseY/9+75);
+      scale = map(sin(distanceToMouse/2), -1, 1, -2, 2);
       rect(0, 0, cellSize+scale, cellSize+scale);
       popMatrix();
     }
   }
 
   if (!paint) {
-    fill(0, 0, 255, 5);
+    fill(255, 0, 255, 10);
     rect(0, 0, width, height);
   }
 }
 
 void mouseClicked() {
   zDistance+=1;
-  if (zDistance >=5.5) {
-    zDistance = -.5;
+  if (zDistance >=modeCount) {
+    zDistance = -modeCount;
+  }
+  else if(zDistance <= -modeCount){
+    zDistance = modeCount;
   }
 }
 
 void keyPressed() {
   if (key == 'p') {
     paint = !paint;
+  }
+  if(key == 'q'){
+    mouseClicked();
+  }
+  if(key == 'a'){
+    zDistance = zDistance-2;
+    mouseClicked();
   }
 }
