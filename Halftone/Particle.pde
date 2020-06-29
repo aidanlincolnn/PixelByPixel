@@ -19,7 +19,7 @@ class Particle extends VerletParticle2D {
     r = r2;
     physics.removeBehavior(behavior);
     if(mode == 6 || mode == 7){
-      behavior = new AttractionBehavior(this,forceRadius,-strength/particleRadius);  
+      behavior = new AttractionBehavior(this,forceRadius+particleRadius,-strength/particleRadius);  
     }
     else if (mode == 8){
       behavior = new AttractionBehavior(this,forceRadius*particleRadius,-particleRadius*strength);

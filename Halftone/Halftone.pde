@@ -2,7 +2,7 @@
  * Pixel By Pixel
  * Pixel get / set code from Danny Rozin
  * 
- * Press "1" Key For circles
+ * Press "1" Key For circles (change flipdot boolean if you want a perfect grid and consisten size dot)
  * Press "2" Key For circles - polar (mouse click changes center point)
  * Press "3" Key For horizontal lines
  * Press "4" Key For vertical lines
@@ -48,7 +48,7 @@ float maxRadius = 0;
 int centerX;
 int centerY;
 
-int[] radiusSet = {1,3,5,7,9,13};
+int[] radiusSet = {1,3,6,9};
 
 /****************************************************************************
 * ***************************************************************************
@@ -58,24 +58,25 @@ int[] radiusSet = {1,3,5,7,9,13};
 //see modes above
 int drawMode = 1;
 //start using the webcam, cant go back if this starts as true
-boolean useVideo = false;
+boolean useVideo = true;
 //more particles, more resolution, slower runtime
 int totalParticles = 5000;
 // this removes small dots to make machining easier
 boolean drawSmallCircles = true;
 // this uses radius set instead of radius range for particle sizes
-boolean useRadiusSet = false;
-
+boolean useRadiusSet = true;
+// this is used to set the circle mode as a perfect grid that is all the same size (for flip dots)
+boolean flipDot = true;
 
 void setup() {
-  size(1440, 720);      
+  size(1280, 720);      
   String videoList[] = Capture.list();
   if(useVideo){
     for (int i = 0; i<videoList.length; i++) {
       if (String.valueOf(videoList[i]).equals("FaceTime HD Camera (Built-in)")) {
         println("camera:", String.valueOf(videoList[i]));
         println("opening camera");
-        video = new Capture(this, 1440, 720, videoList[i]);
+        video = new Capture(this, 1280, 720, videoList[i]);
       }
     }
     centerX = video.width/2;
@@ -88,9 +89,10 @@ void setup() {
   
   theImage = new PImage();
   fill(0);
-  smooth();
+  //smooth();
   noStroke();
   frameRate(10);
+  //noCursor();
  
 }
 
@@ -108,7 +110,7 @@ void draw() {
   
   //draw the halftone image
   if (drawMode == 1) {
-     mouseXScale = map(mouseX, 0, width, 0.01, 2);
+     mouseXScale = map(mouseX, 0, width, 0.01, 3);
      mouseYScale = map(mouseY, 0, height, 3, 25);
     makeCircleHalftone();
   } else if (drawMode == 2) {
@@ -197,7 +199,7 @@ void makeCircleHalftone() {
   boolean offSet = true;
   for (int x=0; x<theImage.width; x+=mouseYScale) {
     for (int y=0; y<theImage.height-int(mouseYScale/2); y+=mouseYScale) {
-      if (offSet) {
+      if (offSet && !flipDot) {
         drawHalftoneCircle(theImage, x, y+int(mouseYScale/2));
       } else {
         drawHalftoneCircle(theImage, x, y);
@@ -212,6 +214,14 @@ void drawHalftoneCircle(PImage frame, int x, int y) {
   float greyscale = (0.3 * R) + (0.59 * G) + (0.11 * B);
   // greyscale to ellipse area
   float r1 = map(greyscale, 0, 255, mouseYScale, .01)*mouseXScale;
+  if(flipDot){
+    if(r1>mouseYScale * mouseXScale/2){
+      r1 = mouseYScale * mouseXScale;
+    }
+    else{
+      r1 = 0;
+    }
+  }
   ellipse(x+xStart, y+yStart, r1, r1);
 }
 
@@ -367,7 +377,16 @@ void electricStipple(){
       //map greyscale of pixel to radius size of particle
       float particleRadius;
       if(useRadiusSet){
-        float particleRadius0 = map((0.3 * R) + (0.59 * G) + (0.11 * B), 0,255,0,radiusSet.length-1);
+        float particleRadius0;
+        //draw mode is 7 flip min and max
+        if(drawMode == 7){
+          particleRadius0 = map((0.3 * R) + (0.59 * G) + (0.11 * B), 0,255,radiusSet.length-1,0);
+        }
+        //regular 
+        else{
+          particleRadius0 = map((0.3 * R) + (0.59 * G) + (0.11 * B), 0,255,0,radiusSet.length-1);
+        }
+        //grab set value instead of exact map
         particleRadius = radiusSet[int(particleRadius0)];
       }
       else{
@@ -397,8 +416,8 @@ void setPhyiscsAndRadiusForMode(){
     background(255);
     forceStrength = map(mouseX,xStart,xStart+theImage.width,0,25);
     forceRadius = map(mouseY,yStart,yStart+theImage.height,0,45);
-    minRadius = radiusRange;
-    maxRadius = 1;
+    //minRadius = radiusRange;
+    //maxRadius = 1;
   }
   else if(drawMode == 8){
     println("Inverse Mode, Light = Less Dense But Bigger White Dots");
